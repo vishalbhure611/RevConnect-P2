@@ -1,0 +1,97 @@
+<app-layout>
+  <div class="feed-layout">
+    <!-- Main column -->
+    <div class="feed-main">
+      <!-- Composer -->
+      <app-post-composer (posted)="onPosted($event)"></app-post-composer>
+
+      <!-- Tabs -->
+      <div class="tabs mb-4">
+        <button class="tab" [class.active]="activeTab === 'for-you'" (click)="setTab('for-you')">
+          For You
+        </button>
+        <button class="tab" [class.active]="activeTab === 'trending'" (click)="setTab('trending')">
+          Trending 🔥
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="feed-filters" *ngIf="activeTab === 'for-you'">
+        <select class="filter-select" [(ngModel)]="filterUserType" (ngModelChange)="onUserTypeChange()">
+          <option value="">All accounts</option>
+          <option value="PERSONAL">Personal</option>
+          <option value="BUSINESS">Business</option>
+          <option value="CREATOR">Creator</option>
+        </select>
+        <select class="filter-select" [(ngModel)]="filterPostType">
+          <option value="">All types</option>
+          <option value="NORMAL">Normal</option>
+          <option value="PROMOTIONAL">Promotional</option>
+        </select>
+        <button *ngIf="filterUserType || filterPostType" class="btn btn-ghost btn-sm" (click)="clearFilters()">
+          ✕ Clear
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-overlay">
+        <div class="spinner spinner-lg"></div>
+        <span>Loading your feed…</span>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!loading && activePosts.length === 0" class="empty-state">
+        <div class="empty-icon">⊞</div>
+        <h3>No posts yet</h3>
+        <p>Connect with people or follow accounts to see posts here</p>
+        <a routerLink="/network" class="btn btn-primary mt-3">Explore Network</a>
+      </div>
+
+      <!-- Posts -->
+      <div *ngIf="!loading">
+        <app-post-card
+          *ngFor="let post of activePosts; trackBy: trackById"
+          [post]="post"
+          (deleted)="onDeleted($event)"
+          class="fade-in">
+        </app-post-card>
+      </div>
+    </div>
+
+    <!-- Sidebar widgets -->
+    <aside class="feed-sidebar">
+      <!-- Trending hashtags -->
+      <div class="card mb-4" *ngIf="trendingHashtags.length">
+        <div class="card-header">Trending Topics</div>
+        <div class="card-body p-0">
+          <div *ngFor="let tag of trendingHashtags; let i = index"
+            class="hashtag-row" (click)="searchHashtag(tag.name)">
+            <div class="hashtag-rank">{{ i + 1 }}</div>
+            <div class="hashtag-info">
+              <div class="hashtag-name">#{{ tag.name }}</div>
+              <div *ngIf="tag.usageCount" class="hashtag-count">{{ tag.usageCount }} posts</div>
+            </div>
+            <span class="hashtag-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="card">
+        <div class="card-header">Quick Actions</div>
+        <div class="card-body" style="display:flex; flex-direction:column; gap:10px">
+          <a routerLink="/network" class="btn btn-secondary w-full" style="justify-content:center">
+            ⬡ Find Connections
+          </a>
+          <a routerLink="/search" class="btn btn-secondary w-full" style="justify-content:center">
+            ⌕ Search Users
+          </a>
+          <a *ngIf="authService.isBusinessOrCreator()" routerLink="/analytics"
+            class="btn btn-secondary w-full" style="justify-content:center">
+            ◈ View Analytics
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</app-layout>

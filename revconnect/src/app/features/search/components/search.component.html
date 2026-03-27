@@ -1,0 +1,77 @@
+<app-layout>
+  <div class="search-page">
+    <div class="search-header">
+      <h2>Search</h2>
+      <button *ngIf="query" class="btn btn-ghost btn-sm" (click)="clearSearch()">Clear Search</button>
+    </div>
+
+    <div *ngIf="!searched && trendingHashtags.length" class="trending-section">
+      <h3>Trending Hashtags</h3>
+      <div class="trending-tags">
+        <button *ngFor="let tag of trendingHashtags"
+          class="trending-tag" (click)="clickHashtag(tag.name)">
+          #{{ tag.name }}
+          <span *ngIf="tag.usageCount" class="tag-count">{{ tag.usageCount }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="searched">
+      <div class="tabs mb-4">
+        <button class="tab" [class.active]="activeTab === 'people'" (click)="setTab('people')">
+          People ({{ users.length }})
+        </button>
+        <button class="tab" [class.active]="activeTab === 'posts'" (click)="setTab('posts')">
+          Posts ({{ posts.length }})
+        </button>
+        <button class="tab" [class.active]="activeTab === 'hashtags'" (click)="setTab('hashtags')">
+          Hashtags ({{ hashtags.length }})
+        </button>
+      </div>
+
+      <div *ngIf="loading" class="loading-overlay">
+        <div class="spinner spinner-lg"></div>
+      </div>
+
+      <div *ngIf="!loading && activeTab === 'people'">
+        <div *ngIf="users.length === 0" class="empty-state">
+          <div class="empty-icon">People</div>
+          <h3>No people found</h3>
+          <p>Try a different name or username</p>
+        </div>
+        <div class="users-grid">
+          <app-user-card *ngFor="let user of users" [user]="user"></app-user-card>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && activeTab === 'posts'">
+        <div *ngIf="posts.length === 0" class="empty-state">
+          <div class="empty-icon">Posts</div>
+          <h3>No posts found</h3>
+          <p>Try searching a hashtag with #</p>
+        </div>
+        <app-post-card *ngFor="let post of posts" [post]="post"></app-post-card>
+      </div>
+
+      <div *ngIf="!loading && activeTab === 'hashtags'">
+        <div *ngIf="hashtags.length === 0" class="empty-state">
+          <div class="empty-icon">#</div>
+          <h3>No hashtags found</h3>
+        </div>
+        <div class="hashtags-list">
+          <div *ngFor="let tag of hashtags" class="hashtag-card card"
+            (click)="clickHashtag(tag.name)">
+            <div class="hashtag-card-body card-body">
+              <div class="hashtag-icon">#</div>
+              <div>
+                <div class="hashtag-card-name">#{{ tag.name }}</div>
+                <div *ngIf="tag.usageCount" class="hashtag-card-count">{{ tag.usageCount }} posts</div>
+              </div>
+              <span class="hashtag-arrow">-></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-layout>

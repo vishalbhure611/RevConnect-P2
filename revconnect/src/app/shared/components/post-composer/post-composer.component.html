@@ -1,0 +1,91 @@
+<div class="composer card" [class.expanded]="expanded">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="composer-top">
+      <app-avatar [src]="authService.currentUser?.profilePictureUrl || null" [name]="authService.username || ''" size="md"></app-avatar>
+      <textarea
+        formControlName="content"
+        class="composer-textarea"
+        [placeholder]="expanded ? 'What\'s on your mind?' : 'Share something...'"
+        (focus)="expand()"
+        [rows]="expanded ? 4 : 1">
+      </textarea>
+    </div>
+
+    <div class="composer-expanded" *ngIf="expanded">
+      <!-- Hashtags -->
+      <div class="composer-field">
+        <label>Hashtags</label>
+        <input type="text" class="form-control" formControlName="hashtags"
+          placeholder="#angular #webdev (space or comma separated)" />
+      </div>
+
+      <!-- Business/Creator only features -->
+      <div *ngIf="isBusinessOrCreator">
+        <div class="composer-row">
+          <div class="composer-field">
+            <label>Post Type</label>
+            <select class="form-control" formControlName="postType">
+              <option value="NORMAL">Normal</option>
+              <option value="PROMOTIONAL">Promotional</option>
+            </select>
+          </div>
+          <div class="composer-field">
+            <label>Schedule for</label>
+            <input type="datetime-local" class="form-control" formControlName="scheduledTime" />
+          </div>
+        </div>
+
+        <button type="button" class="advanced-toggle" (click)="showAdvanced = !showAdvanced">
+          {{ showAdvanced ? '▲' : '▼' }} {{ showAdvanced ? 'Less options' : 'More options (CTA, Products)' }}
+        </button>
+
+        <div *ngIf="showAdvanced" class="advanced-options">
+          <div class="composer-row">
+            <div class="composer-field">
+              <label>CTA Button Label</label>
+              <input type="text" class="form-control" formControlName="ctaLabel"
+                placeholder="e.g. Shop Now, Learn More" />
+            </div>
+            <div class="composer-field">
+              <label>CTA URL</label>
+              <input type="url" class="form-control" formControlName="ctaUrl"
+                placeholder="https://..." />
+            </div>
+          </div>
+
+          <!-- Product tagging -->
+          <div *ngIf="products.length > 0" class="composer-field">
+            <label>Tag Products</label>
+            <div class="product-tags">
+              <button type="button" *ngFor="let product of products"
+                class="product-tag" [class.selected]="isProductSelected(product.id)"
+                (click)="toggleProduct(product.id)">
+                🛍 {{ product.name }}
+              </button>
+            </div>
+          </div>
+
+          <label class="pin-label">
+            <input type="checkbox" formControlName="pinned" />
+            <span>Pin this post to profile</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Actions bar -->
+      <div class="composer-actions">
+        <span class="char-count" [class.over]="charCount > 2800">
+          {{ charCount }}/2800
+        </span>
+        <div class="composer-btns">
+          <button type="button" class="btn btn-ghost" (click)="expanded = false">Cancel</button>
+          <button type="submit" class="btn btn-primary"
+            [disabled]="form.invalid || submitting || charCount > 2800">
+            <span *ngIf="submitting" class="spinner" style="width:14px;height:14px"></span>
+            {{ form.get('scheduledTime')?.value ? 'Schedule' : 'Post' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

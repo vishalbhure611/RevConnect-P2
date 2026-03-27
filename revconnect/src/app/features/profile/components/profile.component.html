@@ -1,0 +1,386 @@
+<app-layout>
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="spinner spinner-lg"></div>
+  </div>
+
+  <div *ngIf="!loading && user" class="profile-page fade-in">
+    <div class="profile-header card">
+      <div class="profile-cover">
+        <div class="cover-gradient"></div>
+      </div>
+
+      <div class="profile-header-body">
+        <div class="profile-avatar-wrap">
+          <app-avatar
+            [src]="user?.profile?.profilePictureUrl || null"
+            [name]="displayName"
+            size="xxl"
+            class="profile-avatar-main">
+          </app-avatar>
+
+          <span class="profile-role-badge badge" [ngClass]="{
+            'badge-personal': user?.role === 'PERSONAL',
+            'badge-business': user?.role === 'BUSINESS',
+            'badge-creator': user?.role === 'CREATOR'
+          }">
+            {{ user?.role }}
+          </span>
+        </div>
+
+        <div class="profile-meta">
+          <div class="profile-name-row">
+            <div>
+              <h2 class="profile-display-name">{{ displayName }}</h2>
+              <div class="profile-username">{{ '@' + user?.username }}</div>
+            </div>
+
+            <div class="profile-actions">
+              <button *ngIf="isOwnProfile"
+                class="btn btn-secondary"
+                (click)="showEditModal = true">
+                Edit Profile
+              </button>
+
+              <ng-container *ngIf="!isOwnProfile && isPublicProfile">
+                <button *ngIf="!isFollowing"
+                  class="btn btn-primary"
+                  (click)="follow()">+ Follow</button>
+
+                <button *ngIf="isFollowing"
+                  class="btn btn-secondary"
+                  (click)="unfollow()">Following</button>
+              </ng-container>
+
+              <ng-container *ngIf="!isOwnProfile && !isPublicProfile">
+                <button *ngIf="!connectionStatus && !user?.isConnected"
+                  class="btn btn-primary"
+                  (click)="sendConnectionRequest()">
+                  + Connect
+                </button>
+
+                <span *ngIf="connectionStatus === 'PENDING'" class="conn-badge conn-badge-pending">
+                  Request Pending
+                </span>
+
+                <span *ngIf="user?.isConnected || connectionStatus === 'ACCEPTED'" class="conn-badge conn-badge-connected">
+                  Connected
+                </span>
+              </ng-container>
+            </div>
+          </div>
+
+          <p *ngIf="user?.profile?.bio" class="profile-bio">{{ user?.profile?.bio }}</p>
+
+          <div class="profile-details">
+            <span *ngIf="user?.profile?.location" class="detail-item">{{ user?.profile?.location }}</span>
+            <a *ngIf="user?.profile?.website"
+              [href]="user?.profile?.website"
+              target="_blank"
+              class="detail-item link">
+              {{ user?.profile?.website }}
+            </a>
+            <span *ngIf="user?.profile?.category" class="detail-item">{{ user?.profile?.category }}</span>
+            <span *ngIf="user?.profile?.contactEmail" class="detail-item">{{ user?.profile?.contactEmail }}</span>
+            <span *ngIf="user?.profile?.businessAddress" class="detail-item">{{ user?.profile?.businessAddress }}</span>
+            <span *ngIf="user?.profile?.businessHours" class="detail-item">{{ user?.profile?.businessHours }}</span>
+          </div>
+
+          <div *ngIf="externalLinkList.length" class="profile-links">
+            <a *ngFor="let link of externalLinkList"
+              [href]="link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="external-link-chip">
+              {{ link }}
+            </a>
+          </div>
+
+          <div class="profile-stats">
+            <div class="p-stat">
+              <span class="stat-number">{{ posts.length }}</span>
+              <span class="stat-label">Posts</span>
+            </div>
+            <div class="p-stat">
+              <span class="stat-number">{{ user?.followersCount || 0 }}</span>
+              <span class="stat-label">Followers</span>
+            </div>
+            <div class="p-stat">
+              <span class="stat-number">{{ user?.followingCount || 0 }}</span>
+              <span class="stat-label">Following</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs mt-4">
+      <button *ngFor="let tab of tabs"
+        class="tab"
+        [class.active]="activeTab === tab.key"
+        (click)="setTab(tab.key)">
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <div *ngIf="isBusinessOrCreator" class="card mt-4">
+      <div class="section-header">
+        <div>
+          <h3 class="section-title">Products & Services</h3>
+          <p class="section-subtitle">Highlight offerings, partnerships, and customer actions.</p>
+        </div>
+        <button *ngIf="isOwnProfile" class="btn btn-primary" (click)="openProductModal()">
+          Add Product
+        </button>
+      </div>
+
+      <div *ngIf="productsLoading" class="loading-inline">
+        <div class="spinner"></div>
+        <span>Loading products...</span>
+      </div>
+
+      <div *ngIf="!productsLoading && products.length" class="products-grid">
+        <div *ngFor="let product of products" class="card product-card">
+          <div class="product-header">
+            <div class="product-icon-wrap">P</div>
+            <div>
+              <div class="product-name">{{ product.name }}</div>
+              <div *ngIf="product.price !== undefined && product.price !== null" class="product-price">
+                {{ product.price | currency:'INR':'symbol':'1.0-2' }}
+              </div>
+            </div>
+          </div>
+
+          <p *ngIf="product.description" class="product-desc">{{ product.description }}</p>
+
+          <a *ngIf="product.url"
+            [href]="product.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-secondary btn-sm mt-3">
+            View Details
+          </a>
+
+          <div *ngIf="isOwnProfile" class="product-actions mt-3">
+            <button class="btn btn-ghost btn-sm" (click)="openProductModal(product)">Edit</button>
+            <button class="btn btn-ghost btn-sm" (click)="deleteProduct(product.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!productsLoading && !products.length" class="empty-state">
+        <div class="empty-icon">Products</div>
+        <h3>No products or services yet</h3>
+        <p *ngIf="isOwnProfile">Add your first offering to showcase it on your profile.</p>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'posts'" class="mt-4">
+      <app-post-composer *ngIf="isOwnProfile" (posted)="onPostCreated($event)"></app-post-composer>
+
+      <div *ngIf="posts.length === 0" class="empty-state">
+        <div class="empty-icon">Posts</div>
+        <h3>No posts yet</h3>
+        <p *ngIf="isOwnProfile">Create your first post above!</p>
+      </div>
+
+      <app-post-card *ngFor="let post of posts"
+        [post]="post"
+        (deleted)="onPostDeleted($event)">
+      </app-post-card>
+    </div>
+
+    <div *ngIf="activeTab === 'followers'" class="mt-4">
+      <div class="users-grid" *ngIf="followers.length; else noUsers">
+        <app-user-card *ngFor="let u of followers" [user]="u"></app-user-card>
+      </div>
+
+      <ng-template #noUsers>
+        <div class="empty-state">
+          <div class="empty-icon">Followers</div>
+          <h3>No followers yet</h3>
+        </div>
+      </ng-template>
+    </div>
+
+    <div *ngIf="activeTab === 'following'" class="mt-4">
+      <div class="users-grid" *ngIf="following.length; else noFollowing">
+        <app-user-card *ngFor="let u of following" [user]="u"></app-user-card>
+      </div>
+
+      <ng-template #noFollowing>
+        <div class="empty-state">
+          <div class="empty-icon">Following</div>
+          <h3>Not following anyone yet</h3>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <div *ngIf="showEditModal && user" class="modal-backdrop" (click)="showEditModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Edit Profile</h3>
+        <button class="btn btn-ghost btn-icon" (click)="showEditModal = false">X</button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="editForm" class="profile-edit-form">
+          <h4 class="mb-3">Account</h4>
+
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input id="username" type="text" class="form-control" formControlName="username" />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" class="form-control" formControlName="email" />
+          </div>
+
+          <div class="form-group">
+            <label for="password">New Password</label>
+            <input id="password" type="password" class="form-control" formControlName="password" placeholder="Leave blank to keep current password" />
+          </div>
+
+          <div class="divider"></div>
+
+          <h4 class="mb-3">Public Profile</h4>
+
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input id="fullName" type="text" class="form-control" formControlName="fullName" />
+          </div>
+
+          <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea id="bio" class="form-control form-control-textarea" formControlName="bio"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="location">Location</label>
+            <input id="location" type="text" class="form-control" formControlName="location" />
+          </div>
+
+          <div class="form-group">
+            <label for="website">Website</label>
+            <input id="website" type="text" class="form-control" formControlName="website" />
+          </div>
+
+          <div *ngIf="isBusinessOrCreator" class="form-group">
+            <label for="category">Category / Industry</label>
+            <input id="category" type="text" class="form-control" formControlName="category" />
+          </div>
+
+          <div *ngIf="isBusinessOrCreator" class="form-group">
+            <label for="contactEmail">Contact Email</label>
+            <input id="contactEmail" type="email" class="form-control" formControlName="contactEmail" />
+          </div>
+
+          <div *ngIf="isBusinessOrCreator" class="form-group">
+            <label for="contactPhone">Contact Phone</label>
+            <input id="contactPhone" type="text" class="form-control" formControlName="contactPhone" />
+          </div>
+
+          <div *ngIf="user?.role === 'BUSINESS'" class="form-group">
+            <label for="businessAddress">Business Address</label>
+            <input id="businessAddress" type="text" class="form-control" formControlName="businessAddress" />
+          </div>
+
+          <div *ngIf="user?.role === 'BUSINESS'" class="form-group">
+            <label for="businessHours">Business Hours</label>
+            <input id="businessHours" type="text" class="form-control" formControlName="businessHours" placeholder="Mon-Fri, 9:00 AM - 6:00 PM" />
+          </div>
+
+          <div *ngIf="isBusinessOrCreator" class="form-group">
+            <label for="externalLinks">External Links</label>
+            <textarea
+              id="externalLinks"
+              class="form-control form-control-textarea"
+              formControlName="externalLinks"
+              placeholder="One link per line"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="profilePictureUpload">Profile Picture</label>
+            <input
+              id="profilePictureUpload"
+              type="file"
+              class="form-control"
+              accept="image/*"
+              (change)="onProfileImageSelected($event)" />
+            <small class="text-muted">Choose an image from your device to update your profile photo.</small>
+          </div>
+
+          <div class="form-group" *ngIf="profileImagePreview">
+            <label>Preview</label>
+            <div class="mt-2">
+              <app-avatar
+                [src]="profileImagePreview"
+                [name]="displayName"
+                size="xl">
+              </app-avatar>
+            </div>
+            <button type="button" class="btn btn-secondary mt-3" (click)="removeSelectedProfileImage()">
+              Remove Photo
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label for="privacy">Privacy</label>
+            <select id="privacy" class="form-control" formControlName="privacy">
+              <option value="PUBLIC">Public</option>
+              <option value="PRIVATE">Private</option>
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showEditModal = false">Cancel</button>
+        <button class="btn btn-primary" [disabled]="editLoading" (click)="saveProfile()">
+          {{ editLoading ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showProductModal" class="modal-backdrop" (click)="closeProductModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingProduct ? 'Edit Product' : 'Add Product' }}</h3>
+        <button class="btn btn-ghost btn-icon" (click)="closeProductModal()">X</button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="productForm" class="profile-edit-form">
+          <div class="form-group">
+            <label for="productName">Name</label>
+            <input id="productName" type="text" class="form-control" formControlName="name" />
+          </div>
+
+          <div class="form-group">
+            <label for="productDescription">Description</label>
+            <textarea id="productDescription" class="form-control form-control-textarea" formControlName="description"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="productUrl">Link</label>
+            <input id="productUrl" type="url" class="form-control" formControlName="url" />
+          </div>
+
+          <div class="form-group">
+            <label for="productPrice">Price</label>
+            <input id="productPrice" type="number" class="form-control" formControlName="price" min="0" step="0.01" />
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeProductModal()">Cancel</button>
+        <button class="btn btn-primary" [disabled]="productLoading" (click)="saveProduct()">
+          {{ productLoading ? 'Saving...' : (editingProduct ? 'Save Changes' : 'Add Product') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</app-layout>

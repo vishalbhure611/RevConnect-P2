@@ -1,0 +1,144 @@
+<article class="post-card card" [class.pinned]="post.pinned">
+  <!-- Pinned indicator -->
+  <div *ngIf="post.pinned" class="pin-bar">
+    <span>📌 Pinned post</span>
+  </div>
+
+  <!-- Shared/Repost header -->
+  <div *ngIf="post.originalPostId" class="repost-header">
+    <span class="repost-icon">↻</span>
+    <span>Reposted from
+      <strong (click)="navigateToProfile(post.originalUsername)" class="link">
+        {{ post.originalUsername }}
+      </strong>
+    </span>
+  </div>
+
+  <div class="post-body">
+    <!-- Header -->
+    <div class="post-header">
+      <div class="post-author" (click)="navigateToProfile(post.username)">
+        <app-avatar [src]="authorAvatar"
+          [name]="displayName" size="md"></app-avatar>
+        <div class="author-info">
+          <div class="author-name">
+            {{ displayName }}
+            <span class="badge badge-sm ms-1" [ngClass]="{
+              'badge-personal': true
+            }">{{ post.postType }}</span>
+          </div>
+          <div class="author-meta">
+            <span>{{ '@' + post.username }}</span>
+            <span class="dot">·</span>
+            <span>{{ timeAgo }}</span>
+            <span *ngIf="post.postType === 'PROMOTIONAL'" class="promo-tag">Promoted</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dropdown -->
+      <div class="dropdown" *ngIf="isOwner">
+        <button class="btn btn-ghost btn-icon-round" (click)="showDropdown = !showDropdown">
+          <span style="font-size:18px; letter-spacing:1px">···</span>
+        </button>
+        <div class="dropdown-menu" *ngIf="showDropdown" (click)="$event.stopPropagation()">
+          <button class="dropdown-item" (click)="openEdit()">✎ Edit</button>
+          <button class="dropdown-item" (click)="togglePin()">
+            {{ post.pinned ? '⊘ Unpin' : '📌 Pin' }}
+          </button>
+          <button class="dropdown-item danger" (click)="confirmDelete()">⊗ Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Original post preview (for reposts) -->
+    <div *ngIf="post.originalPostId" class="original-post-preview">
+      <div class="original-author">
+        <app-avatar [src]="null"
+          [name]="post.originalUsername"
+          size="xs"></app-avatar>
+        <strong>{{ post.originalUsername }}</strong>
+        <span class="text-muted">·</span>
+        <span class="text-muted text-sm">{{ '@' + post.originalUsername }}</span>
+      </div>
+      <p class="original-content">{{ post.content }}</p>
+    </div>
+
+    <!-- Content -->
+    <div class="post-content">{{ post.content }}</div>
+
+    <!-- Hashtags -->
+    <div class="post-hashtags" *ngIf="post.hashtags && post.hashtags.length">
+      <span *ngFor="let tag of post.hashtags" class="hashtag"
+        (click)="navigateToHashtag(tag)">#{{ tag }}</span>
+    </div>
+
+    <!-- CTA Button -->
+    <div *ngIf="post.ctaLabel" class="post-cta">
+      <a [href]="post.ctaUrl || '#'" target="_blank" class="cta-btn">
+        <span>🔗</span>
+        {{ post.ctaLabel || 'Learn More' }}
+      </a>
+    </div>
+
+    <!-- Products -->
+    <div *ngIf="post.productNames && post.productNames.length" class="post-products">
+      <div *ngFor="let name of post.productNames" class="product-chip">
+        <span class="product-icon">🛍</span>
+        <span class="product-name">{{ name }}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="post-actions">
+      <button class="action-btn" [class.liked]="isLiked" (click)="toggleLike()">
+        <span class="action-icon">{{ isLiked ? '♥' : '♡' }}</span>
+        <span>{{ likeCount }}</span>
+      </button>
+
+      <button class="action-btn" (click)="showComments = !showComments">
+        <span class="action-icon">💬</span>
+        <span>{{ post.commentsCount }}</span>
+      </button>
+
+      <button class="action-btn" (click)="sharePost()">
+        <span class="action-icon">↻</span>
+        <span>{{ shareCount }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Comments section -->
+  <app-comment-section [postId]="post.id" [isOpen]="showComments"
+    [commentCount]="post.commentsCount"></app-comment-section>
+</article>
+
+<!-- Edit Modal -->
+<div class="modal-backdrop" *ngIf="showEditModal" (click)="showEditModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit Post</h3>
+      <button class="btn btn-ghost btn-icon" (click)="showEditModal = false">✕</button>
+    </div>
+    <div class="modal-body">
+      <textarea class="form-control form-control-textarea" [(ngModel)]="editContent"
+        rows="5" placeholder="What's on your mind?"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="showEditModal = false">Cancel</button>
+      <button class="btn btn-primary" (click)="saveEdit()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<app-confirm-modal *ngIf="showDeleteConfirm"
+  title="Delete Post"
+  message="This post will be permanently deleted. This action cannot be undone."
+  confirmLabel="Delete"
+  (confirmed)="deletePost()"
+  (cancelled)="showDeleteConfirm = false">
+</app-confirm-modal>
+
+<!-- Overlay to close dropdown -->
+<div *ngIf="showDropdown" class="dropdown-overlay" (click)="closeDropdown()"></div>

@@ -1,0 +1,54 @@
+<nav class="sidebar" [class.mobile-open]="mobileOpen">
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="logo-mark">R</div>
+    <span class="logo-text">RevConnect</span>
+  </div>
+
+  <!-- Nav Items -->
+  <ul class="nav-list">
+    <li *ngFor="let item of visibleNavItems" class="nav-item">
+      <a [routerLink]="item.route" class="nav-link" [class.active]="isActive(item.route)">
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+        <span *ngIf="item.label === 'Notifications' && unreadCount > 0" class="nav-badge">
+          {{ unreadCount > 99 ? '99+' : unreadCount }}
+        </span>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Bottom Section -->
+  <div class="sidebar-footer">
+    <a (click)="goToProfile()" class="profile-link">
+      <app-avatar [src]="profilePictureUrl" [name]="displayName" size="sm"></app-avatar>
+      <div class="profile-info">
+        <div class="profile-name">{{ displayName }}</div>
+        <div class="profile-role">
+          <span class="badge" [ngClass]="{
+            'badge-personal': userRole === 'PERSONAL',
+            'badge-business': userRole === 'BUSINESS',
+            'badge-creator': userRole === 'CREATOR'
+          }">{{ userRole }}</span>
+        </div>
+      </div>
+    </a>
+    <button class="btn btn-ghost btn-icon-round logout-btn" (click)="logout()" title="Logout">
+      <span>⏻</span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-nav">
+  <a *ngFor="let item of visibleNavItems" [routerLink]="item.route" class="mobile-nav-item"
+    [class.active]="isActive(item.route)">
+    <span class="mobile-nav-icon">{{ item.icon }}</span>
+    <span *ngIf="item.label === 'Notifications' && unreadCount > 0" class="mobile-badge">
+      {{ unreadCount > 99 ? '99+' : unreadCount }}
+    </span>
+  </a>
+  <a (click)="goToProfile()" class="mobile-nav-item" [class.active]="isActive('/profile')">
+    <span class="mobile-nav-icon">◎</span>
+  </a>
+</nav>

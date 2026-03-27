@@ -1,0 +1,65 @@
+<div class="user-card card card-hover" (click)="goToProfile()">
+  <div class="user-card-body card-body">
+    <div class="user-card-header">
+      <app-avatar
+        [src]="user.profile?.profilePictureUrl || null"
+        [name]="displayName"
+        size="lg">
+      </app-avatar>
+      <div class="user-info">
+        <div class="user-name">{{ displayName }}</div>
+        <div class="user-username">{{ '@' + user.username }}</div>
+        <span class="badge mt-1" [ngClass]="{
+          'badge-personal': user.role === 'PERSONAL',
+          'badge-business': user.role === 'BUSINESS',
+          'badge-creator': user.role === 'CREATOR'
+        }">{{ user.role }}</span>
+      </div>
+    </div>
+
+    <p *ngIf="user.profile?.bio" class="user-bio">{{ user.profile?.bio }}</p>
+
+    <div class="user-stats" *ngIf="user.followersCount !== undefined">
+      <div class="stat">
+        <span class="stat-val">{{ user.followersCount || 0 }}</span>
+        <span class="stat-lbl">Followers</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val">{{ user.followingCount || 0 }}</span>
+        <span class="stat-lbl">Following</span>
+      </div>
+      <div class="stat" *ngIf="isPersonal">
+        <span class="stat-val">{{ user.connectionsCount || 0 }}</span>
+        <span class="stat-lbl">Connections</span>
+      </div>
+    </div>
+
+    <div class="user-card-actions" *ngIf="showActions && !isCurrentUser" (click)="$event.stopPropagation()">
+      <!-- Personal user: connect or show status -->
+      <ng-container *ngIf="isPersonal">
+        <button *ngIf="!user.connectionStatus && !user.isConnected"
+          class="btn btn-primary btn-sm" (click)="connect()" [disabled]="loading">
+          + Connect
+        </button>
+        <span *ngIf="user.connectionStatus === 'PENDING'" class="conn-badge conn-badge-pending">
+          ⏳ Pending
+        </span>
+        <span *ngIf="user.isConnected || user.connectionStatus === 'ACCEPTED'" class="conn-badge conn-badge-connected">
+          ✓ Connected
+        </span>
+      </ng-container>
+
+      <!-- Business/Creator: follow -->
+      <ng-container *ngIf="isBusinessOrCreator">
+        <button *ngIf="!user.isFollowing"
+          class="btn btn-primary btn-sm" (click)="follow()" [disabled]="loading">
+          + Follow
+        </button>
+        <button *ngIf="user.isFollowing"
+          class="btn btn-secondary btn-sm" (click)="unfollow()" [disabled]="loading">
+          Following
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</div>

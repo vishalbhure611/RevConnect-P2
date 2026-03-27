@@ -1,0 +1,146 @@
+<app-layout>
+  <div class="analytics-page">
+    <div class="page-header">
+      <div>
+        <h2>Analytics & Insights</h2>
+        <p>Track your performance and audience engagement</p>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading-overlay">
+      <div class="spinner spinner-lg"></div>
+      <span>Loading analytics…</span>
+    </div>
+
+    <div *ngIf="!loading" class="fade-in">
+      <!-- Overview stats -->
+      <div class="stats-grid">
+        <div class="stat-card card">
+          <div class="stat-card-icon followers-icon">👤</div>
+          <div>
+            <div class="stat-number">{{ insights?.followerCount || 0 }}</div>
+            <div class="stat-label">Total Followers</div>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-card-icon likes-icon">♥</div>
+          <div>
+            <div class="stat-number">{{ totalLikes }}</div>
+            <div class="stat-label">Total Likes</div>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-card-icon comments-icon">💬</div>
+          <div>
+            <div class="stat-number">{{ totalComments }}</div>
+            <div class="stat-label">Total Comments</div>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-card-icon shares-icon">↻</div>
+          <div>
+            <div class="stat-number">{{ totalShares }}</div>
+            <div class="stat-label">Total Shares</div>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-card-icon reach-icon">◈</div>
+          <div>
+            <div class="stat-number">{{ totalReach }}</div>
+            <div class="stat-label">Total Reach</div>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-card-icon posts-icon">⊞</div>
+          <div>
+            <div class="stat-number">{{ insights?.totalPosts || postsWithAnalytics.length }}</div>
+            <div class="stat-label">Posts Published</div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="authService.isBusinessOrCreator() && followerDemographics" class="card mt-4">
+        <div class="card-header">Follower Demographics</div>
+        <div class="demographics-grid">
+          <div class="demographic-highlight">
+            <div class="demographic-number">{{ followerDemographics.newFollowersLast30Days }}</div>
+            <div class="demographic-label">New followers in last 30 days</div>
+          </div>
+
+          <div class="demographic-breakdown">
+            <div *ngFor="let item of followerMix" class="demographic-row">
+              <div class="demographic-meta">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+              <div class="demographic-bar-track">
+                <div class="demographic-bar-fill" [style.width]="followerMixWidth(item.value)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post performance table -->
+      <div class="card mt-4" *ngIf="postsWithAnalytics.length > 0">
+        <div class="card-header">Post Performance</div>
+        <div class="analytics-table-wrap">
+          <table class="analytics-table">
+            <thead>
+              <tr>
+                <th>Post</th>
+                <th>Likes</th>
+                <th>Comments</th>
+                <th>Shares</th>
+                <th>Reach</th>
+                <th>Engagement</th>
+                <th>Performance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of topPosts">
+                <td class="post-cell">
+                  <div class="post-preview">
+                    {{ item.post.content | slice:0:60 }}{{ ((item.post.content?.length || 0) > 60) ? '…' : '' }}
+                  </div>
+                  <div class="post-date text-xs text-muted">
+                    {{ item.post.createdAt | date:'MMM d, y' }}
+                  </div>
+                </td>
+                <td class="num-cell">
+                  <span class="metric-val">{{ item.analytics?.totalLikes || item.post.likesCount }}</span>
+                </td>
+                <td class="num-cell">
+                  <span class="metric-val">{{ item.analytics?.totalComments || item.post.commentsCount }}</span>
+                </td>
+                <td class="num-cell">
+                  <span class="metric-val">{{ item.analytics?.totalShares || item.post.sharesCount }}</span>
+                </td>
+                <td class="num-cell">
+                  <span class="metric-val">{{ item.analytics?.reach || '—' }}</span>
+                </td>
+                <td class="num-cell">
+                  <span class="engagement-badge">{{ engagementRate(item) }}%</span>
+                </td>
+                <td class="bar-cell">
+                  <div class="perf-bar-track">
+                    <div class="perf-bar-fill"
+                      [style.width]="barWidth(item.analytics?.totalLikes || item.post.likesCount, maxLikes)">
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="postsWithAnalytics.length === 0" class="empty-state mt-4">
+        <div class="empty-icon">◈</div>
+        <h3>No post data yet</h3>
+        <p>Start posting to see analytics here</p>
+        <a routerLink="/feed" class="btn btn-primary mt-3">Create a Post</a>
+      </div>
+    </div>
+  </div>
+</app-layout>

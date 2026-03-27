@@ -1,0 +1,96 @@
+<app-layout>
+  <div class="page-container">
+    <div class="page-header">
+      <h1 class="page-title">My Network</h1>
+    </div>
+
+  <div class="tabs" style="margin-bottom:20px">
+    <button class="tab" [class.active]="activeTab==='connections'" (click)="setTab('connections')">
+      Connections ({{ connections.length }})
+    </button>
+    <button class="tab" [class.active]="activeTab==='requests'" (click)="setTab('requests')">
+      Requests
+      <span *ngIf="requestBadge > 0" class="conn-badge-sm">{{ requestBadge }}</span>
+    </button>
+    <button class="tab" [class.active]="activeTab==='sent'" (click)="setTab('sent')">
+      Sent ({{ pendingSent.length }})
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="skeleton-list">
+    <div class="skeleton" style="height:80px; border-radius:var(--radius); margin-bottom:10px" *ngFor="let i of [1,2,3]"></div>
+  </div>
+
+  <!-- Connections -->
+  <div *ngIf="!loading && activeTab === 'connections'">
+    <div *ngIf="connections.length === 0" class="empty-state">
+      <div class="empty-icon">🤝</div>
+      <h3>No connections yet</h3>
+      <p>Start connecting with people in your industry.</p>
+      <a routerLink="/search" class="btn btn-primary" style="margin-top:12px">Find People</a>
+    </div>
+    <div class="conn-list" *ngIf="connections.length > 0">
+      <div class="conn-card card" *ngFor="let conn of connections">
+        <div class="conn-user" [routerLink]="['/profile', conn.senderUsername === authService.username ? conn.receiverId : conn.senderId]" style="cursor:pointer">
+          <app-avatar [src]="getPeerAvatar(conn)" [name]="getPeerUsername(conn)" size="md"></app-avatar>
+          <div class="conn-info">
+            <div class="conn-name">{{ getPeerUsername(conn) }}</div>
+            <div class="conn-username">{{ '@' + getPeerUsername(conn) }}</div>
+          </div>
+        </div>
+        <div class="conn-actions">
+          <button class="btn btn-ghost btn-sm" (click)="remove(conn.id)">Remove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Received Requests -->
+  <div *ngIf="!loading && activeTab === 'requests'">
+    <div *ngIf="pendingReceived.length === 0" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>No pending requests</h3>
+      <p>Connection requests will appear here.</p>
+    </div>
+    <div class="conn-list" *ngIf="pendingReceived.length > 0">
+        <div class="conn-card card" *ngFor="let conn of pendingReceived">
+          <div class="conn-user">
+          <app-avatar [src]="getSenderAvatar(conn)" [name]="conn.senderUsername" size="md"></app-avatar>
+          <div class="conn-info">
+            <div class="conn-name">{{ conn.senderUsername }}</div>
+            <div class="conn-username">{{ '@' + conn.senderUsername }}</div>
+          </div>
+        </div>
+        <div class="conn-actions">
+          <button class="btn btn-primary btn-sm" (click)="accept(conn.id)">Accept</button>
+          <button class="btn btn-ghost btn-sm" (click)="reject(conn.id)">Decline</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sent Requests -->
+  <div *ngIf="!loading && activeTab === 'sent'">
+    <div *ngIf="pendingSent.length === 0" class="empty-state">
+      <div class="empty-icon">📤</div>
+      <h3>No sent requests</h3>
+      <p>Requests you've sent will appear here.</p>
+    </div>
+    <div class="conn-list" *ngIf="pendingSent.length > 0">
+        <div class="conn-card card" *ngFor="let conn of pendingSent">
+          <div class="conn-user">
+          <app-avatar [src]="getReceiverAvatar(conn)" [name]="conn.receiverUsername" size="md"></app-avatar>
+          <div class="conn-info">
+            <div class="conn-name">{{ conn.receiverUsername }}</div>
+            <div class="conn-username">{{ '@' + conn.receiverUsername }}</div>
+            <span class="badge badge-warning" style="font-size:11px;margin-top:4px">Pending</span>
+          </div>
+        </div>
+        <div class="conn-actions">
+          <button class="btn btn-ghost btn-sm" (click)="remove(conn.id)">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</app-layout>

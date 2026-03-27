@@ -1,0 +1,68 @@
+############################################
+# ===== SPRING BOOT (Backend) =====
+############################################
+
+# Maven / Build
+Backend/target/
+Backend/.mvn/
+Backend/.classpath
+Backend/.project
+Backend/.settings/
+
+# Logs
+Backend/*.log
+
+# Application local config
+Backend/src/main/resources/application-local.properties
+
+############################################
+# ===== FRONTEND (Angular) =====
+############################################
+
+# Dependencies
+node_modules/
+
+# Angular build & cache
+.angular/
+dist/
+build/
+
+# Angular environment files (optional)
+# revconnect/src/environments/environment*.ts
+
+############################################
+# ===== IDE (Global) =====
+############################################
+
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+############################################
+# ===== OS Files =====
+############################################
+
+.DS_Store
+Thumbs.db
+
+############################################
+# ===== ENV / SECRETS =====
+############################################
+
+.env
+*.env
+
+############################################
+# ===== LOG FILES =====
+############################################
+
+*.log
+
+############################################
+# ===== MISC =====
+############################################
+
+*.tmp
+*.swp

@@ -1,0 +1,91 @@
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="brand-logo">R</div>
+      <h1 class="brand-name">RevConnect</h1>
+    </div>
+
+    <p class="auth-tagline">Join thousands of professionals.</p>
+    <p class="auth-sub">
+      Create your account and start building meaningful connections today.
+    </p>
+
+    <div class="auth-features">
+      <div class="feature-item"><span class="feature-icon">⬡</span> Personal, Business & Creator accounts</div>
+      <div class="feature-item"><span class="feature-icon">◈</span> Post analytics & audience insights</div>
+      <div class="feature-item"><span class="feature-icon">⊞</span> Real-time notifications</div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+
+      <div class="auth-header">
+        <h2>Create account</h2>
+        <p>Join RevConnect today</p>
+      </div>
+
+      <div class="form-group">
+        <label>I am a…</label>
+
+        <div class="role-grid">
+          <button
+            type="button"
+            *ngFor="let role of roles"
+            class="role-card"
+            [class.selected]="selectedRole === role.value"
+            (click)="selectRole(role.value)"
+          >
+            <div class="role-icon">{{ role.icon }}</div>
+            <div class="role-name">{{ role.name }}</div>
+            <div class="role-desc">{{ role.desc }}</div>
+          </button>
+        </div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">&#64;</span>
+            <input formControlName="username" type="text" class="form-control"
+              [class.is-invalid]="fieldError('username')"
+              placeholder="yourname" />
+          </div>
+          <div class="form-error" *ngIf="fieldError('username')">
+            {{ fieldError('username') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input formControlName="email" type="email" class="form-control"
+            [class.is-invalid]="fieldError('email')" />
+          <div class="form-error" *ngIf="fieldError('email')">
+            {{ fieldError('email') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input formControlName="password"
+            [type]="showPassword ? 'text' : 'password'"
+            class="form-control"
+            [class.is-invalid]="fieldError('password')" />
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" [disabled]="loading">
+          {{ loading ? 'Creating...' : 'Create Account' }}
+        </button>
+
+      </form>
+
+      <p>
+        Already have an account?
+        <a routerLink="/auth/login">Sign in</a>
+      </p>
+
+    </div>
+  </div>
+</div>

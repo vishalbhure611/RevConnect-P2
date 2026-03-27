@@ -1,0 +1,46 @@
+<div class="comment-section" [class.open]="isOpen">
+  <div class="comment-list" *ngIf="isOpen">
+    <div *ngIf="loading" class="comments-loading">
+      <div class="skeleton" style="height:48px; margin-bottom:8px" *ngFor="let i of [1,2,3]"></div>
+    </div>
+
+    <div class="comment-item" *ngFor="let comment of comments">
+      <app-avatar [src]="getCommentAvatar(comment.username)" [name]="comment.username" size="sm"></app-avatar>
+      <div class="comment-body">
+        <div class="comment-header">
+          <span class="comment-author">{{ comment.username }}</span>
+          <span class="comment-time">{{ comment.createdAt | date:'MMM d, h:mm a' }}</span>
+          <button
+            *ngIf="comment.username === authService.username"
+            class="btn-icon-sm"
+            (click)="deleteComment(comment.id)"
+            title="Delete">🗑</button>
+        </div>
+        <p class="comment-content">{{ comment.content }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && comments.length === 0" class="no-comments">
+      No comments yet. Be the first!
+    </div>
+  </div>
+
+  <!-- Add Comment -->
+  <div class="comment-compose" *ngIf="isOpen">
+    <app-avatar [src]="getCurrentUserAvatar()" [name]="authService.username || ''" size="sm"></app-avatar>
+    <div class="comment-input-wrap">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Write a comment…"
+        [(ngModel)]="newComment"
+        (keydown.enter)="submitComment()"
+        [disabled]="submitting"
+      />
+      <button class="btn btn-primary btn-sm" (click)="submitComment()"
+        [disabled]="!newComment.trim() || submitting">
+        {{ submitting ? '…' : 'Post' }}
+      </button>
+    </div>
+  </div>
+</div>
